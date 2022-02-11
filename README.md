@@ -25,4 +25,22 @@
 
 
 ### Resources
+#### C Language
 1. [Unit Testing Framework for C](https://libcheck.github.io/check/)
+2. [Clang - compilation stages](https://freecompilercamp.org/clang-basics/)
+
+#### Makefile
+1. [Variables](https://web.mit.edu/gnu/doc/html/make_6.html)
+2. [Substitution references](https://www.gnu.org/software/make/manual/make.html#Substitution-Refs)
+3. [Substitution refs (stackoverflow)](https://stackoverflow.com/questions/12069457/how-to-change-the-extension-of-each-file-in-a-list-with-multiple-extensions-in-g)
+4. [Rules](https://www.gnu.org/software/make/manual/html_node/Rule-Introduction.html)
+5. [Automatic variables (used in rules)](https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html#Automatic-Variables)
+6. [Expanding variables inside of rules body](https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html)
+7. [Default target](https://stackoverflow.com/questions/2057689/how-does-make-app-know-default-target-to-build-if-no-target-is-specified)
+8. [Phony targets](https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html)
+9. [Expanding variable to multiple rules](https://stackoverflow.com/questions/28804025/how-to-expand-variables-to-multiple-rules-in-makefile)
+10. [Static pattern rules](https://www.gnu.org/software/make/manual/html_node/Static-Usage.html#Static-Usage)
+11. [Creating custom functions](https://coderwall.com/p/cezf6g/define-your-own-function-in-a-makefile)
+12. [Standard functions for file names](https://www.gnu.org/software/make/manual/make.html#Text-Functions)
+13. [Suppressing output](https://stackoverflow.com/questions/24005166/gnu-make-silent-by-default)
+
