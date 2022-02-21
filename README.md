@@ -6,6 +6,11 @@
 3. [Unix, Linux, POSIX](#chapter-3-unix-linux-posix)
 4. [Resources](#resources)
 
+### Chapter 0. Basics
+  1. Interactive prompt:
+    ```make lab1_1
+
+
 ### Chapter 1. Basic DSA
   1. Lists
   2. Queue
