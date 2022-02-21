@@ -8,7 +8,11 @@
 
 ### Chapter 0. Basics
   1. Interactive prompt:
-    ```make lab1_1
+  ```bash
+  make lab1_1
+  make run lab1_1
+  ```
+  2. ....
 
 
 ### Chapter 1. Basic DSA
