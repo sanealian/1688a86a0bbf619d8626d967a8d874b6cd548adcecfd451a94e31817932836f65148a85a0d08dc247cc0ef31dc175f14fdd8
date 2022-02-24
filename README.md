@@ -7,12 +7,19 @@
 4. [Resources](#resources)
 
 ### Chapter 0. Basics
-  1. Interactive prompt:
-  ```bash
-  make lab1_1
-  make run lab1_1
-  ```
-  2. Build:
+####  1. Lab 1:
+  1. Task 1:
+    ```bash
+    make lab1_1
+    make run lab1_1
+    ```
+  2. Task 2:
+    ```bash
+    make lab1_2
+    make run_l12
+    ```
+    
+####  2. Lab 2:
    ```bash
    make lab2_1
    ```
@@ -21,7 +28,7 @@
    ./bin/lab2_1.bin
    ```
 
-
+---
 ### Chapter 1. Basic DSA
   1. Lists
   2. Queue
