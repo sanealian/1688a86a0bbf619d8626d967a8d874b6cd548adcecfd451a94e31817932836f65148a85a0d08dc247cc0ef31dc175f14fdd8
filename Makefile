@@ -23,12 +23,21 @@ lab1_1: src/lab1/task1.c dirs
 lab1_2: src/lab1/task2.c dirs
 	@clang $< -o $(BIN_DIR)$@.bin
 
+lab2_1: src/lab2/task1.c dirs
+	clang $< -o $(BIN_DIR)$@.bin
+
 # --- /TARGETS ---------------------------------------------------------------
 
-run: lab1_1
+run_l11: lab1_1
 	@ ./bin/lab1_1.bin
 
-run: lab1_2
+run_l12: lab1_2
 	@ ./bin/lab1_2.bin
 
-.PHONY: dirs
+
+clean:
+	@echo "Cleaning stuff"
+	@rm -rf $(BIN_DIR)
+
+
+.PHONY: dirs 
