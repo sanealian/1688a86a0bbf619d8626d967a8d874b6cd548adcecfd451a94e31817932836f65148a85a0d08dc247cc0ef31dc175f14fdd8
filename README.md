@@ -12,7 +12,14 @@
   make lab1_1
   make run lab1_1
   ```
-  2. ....
+  2. Build:
+   ```bash
+   make lab2_1
+   ```
+   Then run:
+   ```bash
+   ./bin/lab2_1.bin
+   ```
 
 
 ### Chapter 1. Basic DSA
