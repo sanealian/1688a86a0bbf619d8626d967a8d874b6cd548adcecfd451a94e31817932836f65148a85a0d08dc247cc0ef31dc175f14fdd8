@@ -1,49 +1,58 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
-#include <sys/ioctl.h>
-#define Y_SIZE 55
-#define X_SIZE 100
-#define LATENCY ((useconds_t) 1000*150)
-#define LETTERS_COUNT 18
-const char LETTER_LIST[LETTERS_COUNT] = { 'A', 'B', 'C', 'D', 'E', 'F',
-                                      '0', '1', '2', '3', '4', '5',
-                                      '6', '7', '8', '9','*','&' };
+#include "task2.h"
+#include <string.h>
 
 
-char get_random_letter ();
-void matrix_rand_letters_fill (void * p_matrix, int rows, int cols);
-void flush_matrix_toscreen (void * p_matrix, int rows, int cols);
-void flush_row_to_screen (int cols, char row[]);
-void row_rand_letters_fill (int cols, char row[]);
-void start_revolution(void * p_matrix, int rows, int cols);
 
+/* ---------------------------------------------------------------------------
+ * ----- M A I N -------------------------------------------------------------
+ * ---------------------------------------------------------------------------*/
 
 int main(void)
 {
+    // Get current window dimensions (size)
+    // """"""""""""""""""""""""""""""""""""
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &curWinSize);
+    lastWinSize = curWinSize;
 
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    printf("%d", w.ws_col);
-    char array[Y_SIZE][X_SIZE] = {{0}};
+    // Set shorthand names for window dimension numbers
+    // also cut the number of columns by half
+    // cause of the additional spaces printed to seprarate chars
+    // """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    ushort_t rows = curWinSize.ws_row,
+                   cols = curWinSize.ws_col / 2;
+    last_allocated_rows_count = rows;
+    last_allocated_cols_count = cols;
 
-    matrix_rand_letters_fill(&array,Y_SIZE, X_SIZE);
-    start_revolution(&array, Y_SIZE, X_SIZE);
+    // Allocate array in respect to window dimensions
+    // """"""""""""""""""""""""""""""""""""""""""""""
+    char ** matrix = calloc( rows, sizeof(char*) );
+    for (ushort_t i = 0; i < rows; ++i)
+        matrix[i] = calloc( cols, sizeof(char) );
+
+    matrix_rand_letters_fill (matrix, rows, cols);
+
+    /* ------- START REVOLUTION -------- */
+    start_revolution( matrix, rows, cols );
+
     return 0;
 }
 
-
+// ===========================================================================
 
 // ---------------------------------------------------------------------------
 
 void
-matrix_rand_letters_fill (void * p_matrix, int rows, int cols)
+matrix_rand_letters_fill
+(
+    char ** p_matrix,
+    ushort_t rows, ushort_t cols
+)
 {
-    char * matrix = (char*) p_matrix;
-	for (int i=0, j=0; i < rows; ++j)
+    // Iterate 2D array using single loop
+    // """"""""""""""""""""""""""""""""""
+	for (ushort_t i=0, j=0; i < rows; ++j)
 	{
-		matrix[i * cols + j] = LETTER_LIST[ rand() % LETTERS_COUNT ];;
+		p_matrix[i][j] = LETTER_LIST[ rand() % LETTERS_COUNT ];;
 		(j >= cols-1) && ++i && (j = -1);
 	}
 }
@@ -51,83 +60,211 @@ matrix_rand_letters_fill (void * p_matrix, int rows, int cols)
 // ---------------------------------------------------------------------------
 
 void
-row_rand_letters_fill (int cols, char row[])
+row_rand_letters_fill (ushort_t cols, char * row)
 {
-    for (int j=0; j < cols; ++j)
+    for (ushort_t j=0; j < cols; ++j)
 	{
-		row[j] = LETTER_LIST[ rand() % LETTERS_COUNT ];;
+		row[j] = LETTER_LIST[ rand() % LETTERS_COUNT ];
 	}
 }
 
 // ---------------------------------------------------------------------------
 
-void
-flush_matrix_toscreen (void * p_matrix, int rows, int cols)
+void allocErrorExit()
 {
-    char * matrix = (char*) p_matrix;
-	for (int i=0, j=0; i < rows; ++j)
-	{
-		printf("%c ", matrix[ i * cols + j]);
-		(j >= cols-1) && ++i && (j = -1) && printf("\n");
-	}
+    fprintf( stderr,
+        "Failed to reallocate memory at: line %d in %s\n\n",
+        __LINE__, __FILE__
+    );
+    exit(267);
 }
 
 // ---------------------------------------------------------------------------
 
 void
-flush_row_to_screen (int cols, char row[])
+on_winsize_changed( char *** p_matrix )
 {
-    for (int j=0; j < cols; ++j)
-        printf("%c ", row[j]);
-    printf("\n");
+    // Current window dimensions
+    // """""""""""""""""""""""""
+    ushort_t newsize_rows = curWinSize.ws_row * 2;
+    ushort_t newsize_cols = (curWinSize.ws_col /2) * 2;
+
+    ushort_t last_rows = last_allocated_rows_count;
+    ushort_t last_cols = last_allocated_cols_count;
+
+    // When size of window rows more than array can hold
+    // """""""""""""""""""""""""""""""""""""""""""""""""
+    if ( curWinSize.ws_row > last_allocated_rows_count )
+    {
+        // Create temporary pointer to avoid corruption and loss
+        // of the matrix pointer
+        // In case of successfull reallocation change the pointer
+        // """""""""""""""""""""""""""""""""""""""""""""""""""""
+        char ** matrix = (char**) realloc(
+            *p_matrix,
+            sizeof(char*) * newsize_rows
+        );
+        
+        // If allocation failed print some info and exit
+        // """""""""""""""""""""""""""""""""""""""""""""
+        if (matrix == NULL)
+            allocErrorExit();
+        *p_matrix = matrix;
+
+        // Allocate spapce for new rows
+        // """"""""""""""""""""""""""""
+        ushort_t _i = last_rows - 1;
+        for (; _i < newsize_rows; ++_i)
+        {
+            (*p_matrix)[_i] = (char*) malloc(newsize_cols * sizeof(char));
+            if ( (*p_matrix)[_i] == NULL )
+                allocErrorExit();
+        }
+
+        last_allocated_rows_count = newsize_rows;
+    }
+    
+    // Amount of columsns changed
+    if ( (curWinSize.ws_col ) > last_cols )
+    {
+        for (ushort_t _i = 0; _i < last_rows; ++_i)
+        {
+            char * tmp = (char*) realloc((*p_matrix)[_i], (newsize_cols) * sizeof(char));
+            if (tmp == NULL)
+                allocErrorExit();
+            (*p_matrix)[_i] = tmp;
+        }
+        last_allocated_cols_count = newsize_cols;
+    }
 }
 
 // ---------------------------------------------------------------------------
 
 void
-start_revolution(void * p_matrix, int rows, int cols)
+start_revolution(
+    char ** p_matrix,
+    ushort_t rows, ushort_t cols)
 {
-    char * matrix = (char*) p_matrix;
-    int times = 0;
-    int shift = 0;
-    int rows_counter = rows;
-    int i_ceil = rows;
-    int i = 0, j=0;
+    // Fill matrix with pseudo-random letters from predefined list
+    // """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    matrix_rand_letters_fill( p_matrix, rows, cols );
 
-    printf("\033[32m");
+    // This will point out
+    // if the window size was cahnged durring the iteration
+    // """"""""""""""""""""""""""""""""""""""""""""""""""""
+    bool_t b_winsize_changed;
+
+    // This specifies the matrix row shift
+    // from which to start printing the whole matrix at each iteration
+    // this is for new rows to be generated
+    // and stored in the same matrix array without additional arrays
+    // """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    ushort_t row_shift = 0;
+    
+    // Tracks amount of rows left to print
+    // on each drawing (matrix print) step
+    // """""""""""""""""""""""""""""""""""
+    ushort_t rows_counter = rows;
+
+    // Counters for rows and columns
+    // """""""""""""""""""""""""""""
+    ushort_t i = 0, j=0;
+
+
+
+    // Global loop that generates new rows
+    // """""""""""""""""""""""""""""""""""
     while (1)
 	{
-        // flush_matrix_with_shitf(p_matrix, )
-        for (i=rows-shift-1,j=0; rows_counter; ++j)
+        // Set green text color
+        // """"""""""""""""""""
+        printf("\033[32m");
+        b_winsize_changed = 0;
+
+        // Print(draw) matrix to the screen
+        // """"""""""""""""""""""""""""""""
+        for (i = (rows - row_shift - 1), j = 0; rows_counter; ++j)
         {
-            printf("%c ", matrix[ i * cols + j]);
-			// printf("i: %d | j: %d | shift: %d | i_ceil: %d\n", i, j, shift, i_ceil);
-			// Check if current row is printed
-			(
+            // Get current window size
+            // """""""""""""""""""""""
+            ioctl(STDOUT_FILENO, TIOCGWINSZ, &curWinSize);
+
+            if (
+                 curWinSize.ws_row != lastWinSize.ws_row ||
+                 curWinSize.ws_col != lastWinSize.ws_col )
+            {
+                b_winsize_changed = 1;
+            }
+
+            // When window size is altered
+            // trigger matrix resize action
+            // """"""""""""""""""""""""""""
+            on_winsize_changed(&p_matrix);
+            if (b_winsize_changed) // stop printing matrix columns
+                break;
+
+            // Print column
+            printf("%c ", p_matrix[i][j]);
+
+            // On each iteration check if all row is passed
+			// If row is passed (j > cols) then check some other coditions
+            // """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+			(   
 				(j >= cols-1)
-				// Move to the next row and reset column counter
-				&& ++i && (j = -1)
-				// Print new line at the end of the current row
-				&& printf("\n")
+                    // Move to the next row and reset column counter
+                    && ++i && (j = -1)
+                    // Print new line at the end of the current row
+                    && printf("\n")
 			)
 			&&
+            // If i is out of array boundary (i > rows)
+            // """"""""""""""""""""""""""""""""""""""""
 			(
-                ( rows_counter-- ) &&
-				(i >= rows) && (i = 0)
+                // Rows left to iterate
+                ( rows_counter-- )
+                // reset current row index position
+                // if it crosses the array boundary
+                && (i >= rows) && (i = 0)
 			); 
+        }        
+        // Clear the screen
+        printf("\033c");
+
+        // Generate new row at the end of the array
+        // with current position shift
+        // """"""""""""""""""""""""""""""""""""""""
+        row_rand_letters_fill (cols, p_matrix[rows-row_shift-1]);
+
+        // In case window has been resized reset the counters and start over
+        // """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+        if (b_winsize_changed)
+        {
+            rows = curWinSize.ws_row;
+            cols = curWinSize.ws_col / 2;
+            rows_counter = rows - 1;
+            row_shift=0;
+            lastWinSize.ws_row = curWinSize.ws_row;
+            lastWinSize.ws_col = curWinSize.ws_col;
+
+            matrix_rand_letters_fill (p_matrix, rows, cols);
+            continue;
         }
-        printf("\033[3J");
-        // Reset values
-        // --------------------
+
+        // Reset rows counter so the loop that prints the matrix
+        // can exit at the right time
+        // """""""""""""""""""""""""""""""""""""""""""""""""""""
         rows_counter = rows;
-        // Generate new row at the end of the array with current shitf
-        i=++shift;
-        row_rand_letters_fill (cols, &matrix[rows-shift-1]);
-        // Reset shift when it's out the boundary
-        (shift >= rows) && (shift = 0);
-        ++times;
+        
+        // Reset shift when it's out of the boundary (current_index > last)
+        // """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+        ++row_shift;
+        (row_shift >= rows) && (row_shift = 0);
+        
+        // Introduce some latency before next drawing (matrix printing)
+        // """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         usleep(LATENCY);
 	}
+
 }
 
 // ---------------------------------------------------------------------------
