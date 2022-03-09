@@ -26,6 +26,9 @@ lab1_2: src/lab1/task2.c dirs
 lab2_1: src/lab2/task1.c dirs
 	clang $< -o $(BIN_DIR)$@.bin
 
+lab3_queue: src/lab3/queue.c src/lab3/task1_1_queue.c
+	@clang $^ -o $(BIN_DIR)$@.bin
+
 # --- /TARGETS ---------------------------------------------------------------
 
 run_l11: lab1_1
@@ -33,6 +36,9 @@ run_l11: lab1_1
 
 run_l12: lab1_2
 	@ ./bin/lab1_2.bin
+
+run_l3_queue: dirs lab3_queue
+	@ ./bin/lab3_queue.bin
 
 
 clean:
