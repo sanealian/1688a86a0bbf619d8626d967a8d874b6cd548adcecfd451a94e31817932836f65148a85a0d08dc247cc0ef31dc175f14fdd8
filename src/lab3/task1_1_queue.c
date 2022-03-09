@@ -28,7 +28,6 @@ int main()
     // """"""""""""""""""""
     node1->data = n1data;
     node2->data = n2data;
-    node_t * node3 = queue->new_node(queue, n3data, sizeof(n3data));
 
     printf("---------------------------------------------------\n");
 
@@ -40,8 +39,8 @@ int main()
     queue->push(queue, node2);
     printf("Pushed second item: %s\n", (char*)node2->data);
 
-    queue->push(queue, node3);
-    printf("Pushed third item: %s\n", (char*)node2->data);
+    node_t * node3 = queue->new_node(queue, n3data, sizeof(n3data));
+    printf("Pushed third item: %s\n", (char*)node3->data);
 
     printf("---------------------------------------------------\n");
 
