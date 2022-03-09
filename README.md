@@ -34,6 +34,12 @@
   make run_l3_queue
   ```
 
+  2. Stack:
+  ```bash
+  make run_l3_stack
+  ```
+  
+
 ---
 ### Chapter 1. Basic DSA
   1. Lists
