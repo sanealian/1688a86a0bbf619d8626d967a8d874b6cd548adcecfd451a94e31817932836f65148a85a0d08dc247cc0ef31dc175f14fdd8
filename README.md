@@ -28,6 +28,12 @@
    ./bin/lab2_1.bin
    ```
 
+#### 3. Lab 3:
+  1. Queues:
+  ```bash
+  make run_l3_queue
+  ```
+
 ---
 ### Chapter 1. Basic DSA
   1. Lists
