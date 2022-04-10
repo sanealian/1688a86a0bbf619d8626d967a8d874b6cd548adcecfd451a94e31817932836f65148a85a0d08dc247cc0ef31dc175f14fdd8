@@ -40,6 +40,17 @@
   ```
   
 
+#### 4. Lab 4:
+Hashtables implementation source files are placed at `inlcude/hashtable`
+This is not the best way to organize file structure, but still on this stage the best we can have.
+
+The tests are places at : `tests/lab4`
+
+And the tasks solutions are placed at: `src/lab4/`
+
+To run tests use: `make test_lab4`
+To run specific task use : `make run_lab4_taskX`, where `X` is the task number.
+
 ---
 ### Chapter 1. Basic DSA
   1. Lists
