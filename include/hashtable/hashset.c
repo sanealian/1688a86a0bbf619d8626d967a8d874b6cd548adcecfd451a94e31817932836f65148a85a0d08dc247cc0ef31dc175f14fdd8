@@ -9,7 +9,8 @@ bool_t hashadd (HashSet * hs, char data[])
 
     if ( has != 0 )
     {
-        printf("This item is already in the set");
+        // if ( hs->debug )
+        //     printf("This item is already in the set: %s\n", data);
         return 1; // error inseritng
     }
 
